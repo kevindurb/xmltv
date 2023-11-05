@@ -1,0 +1,46 @@
+#! /bin/bash
+# https://gist.github.com/idolpx/c82747bb740c303f56ad8a1e8f17d575
+
+START_DATE=$(date -u "+%Y-%m-%dT00:00:00.000Z")
+
+echo "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"
+echo "<!DOCTYPE tv SYSTEM \"xmltv.dtd\">"
+echo "<tv date=\"$START_DATE\"  source-info-name=\"tvtv2xmltv\">"
+
+LINEUP="USA-OTA80917"
+STATIONS_URL="https://www.tvtv.us/api/v1/lineup/$LINEUP/channels"
+STATIONS=$(curl "$STATIONS_URL" 2> /dev/null | jq -c '.[]')
+STATION_IDS=()
+
+for STATION in $STATIONS; do
+  STATION_ID=$(echo "$STATION" | jq -r '.stationId')
+  STATION_IDS+=("$STATION_ID")
+
+  CHANNEL_NUMBER=$(echo "$STATION" | jq -r '.channelNumber')
+  STATION_CALL_SIGN=$(echo "$STATION" | jq -r '.stationCallSign')
+  LOGO=$(echo "$STATION" | jq -r '.logo')
+
+  echo "<channel id=\"$CHANNEL_NUMBER\">"
+  echo "<display-name>$CHANNEL_NUMBER</display-name>"
+  echo "<display-name>$STATION_CALL_SIGN</display-name>"
+  echo "<icon src=\"https://www.tvtv.us$LOGO\" />"
+  echo "</channel>"
+done
+
+CSV_STATION_IDS=$(IFS=$','; echo "${STATION_IDS[*]}")
+
+for DAY in {0..8}; do
+  DATE=$(date -d "+$DAY days" -u "+%Y-%m-%d")
+  START="${DATE}T00:00:00.000Z"
+  END="${DATE}T23:59:59.000Z"
+  LISTING_URL="https://www.tvtv.us/api/v1/lineup/$LINEUP/grid/$START/$END/$CSV_STATION_IDS"
+  LISTINGS=$(curl "$LISTING_URL" 2> /dev/null)
+
+  for STATION in $STATIONS; do
+
+    for
+
+  done
+done
+
+echo "</tv>"
